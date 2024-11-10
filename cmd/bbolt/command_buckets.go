@@ -8,24 +8,28 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-// bucketsCmd represents the buckets command
+// newBucketsCommand creates a new command that prints a list of buckets in the given Bolt database.
+//
+// The path to a Bolt database must be specified as an argument.
 func newBucketsCommand() *cobra.Command {
 	var bucketsCmd = &cobra.Command{
 		Use:   "buckets <path>",
 		Short: "Print a list of buckets",
+		Long:  "Print a list of buckets in the given Bolt database\nThe path to a Bolt database must be specified as an argument",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return bucketsfunc(args[0])
+			return printBucketsList(args[0])
 		},
 	}
 	return bucketsCmd
 }
 
-// Run executes the command.
-func bucketsfunc(path string) error {
-	// Require database path.
+// printBucketsList prints a list of buckets in the given Bolt database.
+func printBucketsList(path string) error {
+	// Required database path.
 	if path == "" {
 		return ErrPathRequired
+		// Verify if the specified database file exists.
 	} else if _, err := os.Stat(path); os.IsNotExist(err) {
 		return ErrFileNotFound
 	}
@@ -37,7 +41,7 @@ func bucketsfunc(path string) error {
 	}
 	defer db.Close()
 
-	// Print buckets.
+	// Print the list of buckets in the database.
 	return db.View(func(tx *bolt.Tx) error {
 		return tx.ForEach(func(name []byte, _ *bolt.Bucket) error {
 			fmt.Fprintln(os.Stdout, string(name))
