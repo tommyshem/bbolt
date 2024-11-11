@@ -18,14 +18,14 @@ func newBucketsCommand() *cobra.Command {
 		Long:  "Print a list of buckets in the given Bolt database\nThe path to a Bolt database must be specified as an argument",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return printBucketsList(args[0])
+			return printBucketsList(cmd, args[0])
 		},
 	}
 	return bucketsCmd
 }
 
 // printBucketsList prints a list of buckets in the given Bolt database.
-func printBucketsList(path string) error {
+func printBucketsList(cmd *cobra.Command, path string) error {
 	// Required database path.
 	if path == "" {
 		return ErrPathRequired
@@ -44,7 +44,7 @@ func printBucketsList(path string) error {
 	// Print the list of buckets in the database.
 	return db.View(func(tx *bolt.Tx) error {
 		return tx.ForEach(func(name []byte, _ *bolt.Bucket) error {
-			fmt.Fprintln(os.Stdout, string(name))
+			fmt.Fprintln(cmd.OutOrStdout(), string(name))
 			return nil
 		})
 	})
